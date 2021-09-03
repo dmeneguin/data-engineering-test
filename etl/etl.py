@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from sqlalchemy import create_engine
 
 def verify_import_consistency(original_df, imported_df):
     for i, row in original_df.iterrows():
@@ -50,4 +51,5 @@ create_and_fill_unit_column(formatted_df)
 remove_unit_from_product_name(formatted_df)
 formatted_df = extract_relevant_columns_and_rename(formatted_df)
 
-print(formatted_df)
+engine = create_engine('postgresql://unicorn_user:magical_password@localhost:5432/rainbow_database')
+formatted_df.to_sql('diesel_sales', engine, if_exists='replace', index=False)
