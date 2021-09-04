@@ -53,3 +53,5 @@ formatted_df = extract_relevant_columns_and_rename(formatted_df)
 
 engine = create_engine('postgresql://unicorn_user:magical_password@localhost:5432/rainbow_database')
 formatted_df.to_sql('diesel_sales', engine, if_exists='replace', index=False)
+with engine.connect() as con:
+    con.execute('CREATE INDEX diesel_sales_idx ON diesel_sales (year_month, uf, product);')
