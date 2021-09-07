@@ -11,3 +11,23 @@ services:
     image: chorss/docker-pgadmin4
     ports:
       - 5050:5050
+
+  libreoffice:
+    image: libreoffice
+    build:
+        context: ./libreoffice
+        dockerfile: ./Dockerfile
+    ports:
+      - 8100:8100
+    volumes:
+      - ./tmp:/tmp
+
+  xls_pivot_cache_loader:
+    image: xls_pivot_cache_loader
+    build:
+        context: ./xls_pivot_cache_loader
+        dockerfile: ./Dockerfile
+    ports:
+      - 5000:5000
+    volumes:
+      - ./tmp:/tmp

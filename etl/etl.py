@@ -1,6 +1,8 @@
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
+import os
+import urllib.request
 
 def verify_import_consistency(original_df, imported_df):
     for i, row in original_df.iterrows():
@@ -41,7 +43,9 @@ def remove_unit_from_product_name(formatted_df):
     formatted_df["COMBUSTÍVEL"] = formatted_df.apply(lambda row: row["COMBUSTÍVEL"].replace("(m3)", ""), axis=1)
 
 
-original_df = pd.read_excel("./data/vendas-combustiveis-m3.xls", sheet_name="DPCache_m3_2")
+url = 'http://localhost:5000/download'
+file_name, headers = urllib.request.urlretrieve(url)
+original_df = pd.read_excel(file_name, sheet_name="DPCache_m3_2")
 formatted_df = pd.DataFrame()
 formatted_df = group_months_into_single_volume_column(original_df, formatted_df)
 fill_na_of_volume_with_zeros(formatted_df)
