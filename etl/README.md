@@ -1,5 +1,28 @@
 # ANP Fuel Sales ETL
 
+### Instructions for installation and execution
+On the /etl file run:
+
+```sh
+docker-compose up
+```
+
+When all containers are up, access  
+```sh
+http://localhost:8080
+```
+And then, the Apache Airflow login screen should be available:
+
+![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/airflow-login.png)
+
+The username and password are "airflow".
+
+Once logged in, the DAG list should be visible:
+
+![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/dag.png)
+
+Hitting the play button, the dag is executed.
+
 ### Integrations
 This project has 4 main containers on docker-compose.yaml:
   - xls_pivot_cache_loader
