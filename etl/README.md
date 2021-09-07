@@ -23,6 +23,8 @@ Once logged in, the DAG list should be visible:
 
 Hitting the play button, the dag is executed.
 
+------------
+
 ### Integrations
 This project has 4 main containers on docker-compose.yaml:
   - xls_pivot_cache_loader
@@ -37,6 +39,8 @@ The xls_pivot_cache_loader is a Python Flask app that downloads the [xls file](h
 The Apache airflow is up in another container that has the etl_dag.py script. This script has a task for extract, transform, load and verify the data. For the extraction task, the endpoint /download served by xls_pivot_cache_loader app is consumed.
 
 The pgadmin has a postgresql admin instance to make queries on postgresql database.
+
+------------
 
 ### ETL Overview
 The ETL DAG has 4 tasks: Extraction, Transform, Verify, Load
