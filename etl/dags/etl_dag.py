@@ -13,6 +13,7 @@ import datetime
 from sqlalchemy import create_engine
 import os
 import urllib.request
+import time;
 
 # [END import_module]
 
@@ -70,7 +71,8 @@ with DAG(
         formatted_df["year_month"] = formatted_df["year_month"].astype('string')
 
     def create_and_fill_created_at_column(formatted_df):
-        formatted_df["created_at"] = datetime.datetime.utcnow()
+        formatted_df["created_at"] = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+        formatted_df["created_at"] = formatted_df["created_at"].astype('string')
 
     def remove_unit_from_product_name(formatted_df):
         formatted_df["COMBUSTÍVEL"] = formatted_df.apply(lambda row: row["COMBUSTÍVEL"].replace("(m3)", ""), axis=1)
@@ -147,6 +149,8 @@ with DAG(
         with engine.connect() as con:
             con.execute('ALTER TABLE gas_sales ALTER COLUMN year_month TYPE date USING(year_month::date)')
             con.execute('ALTER TABLE diesel_sales ALTER COLUMN year_month TYPE date USING(year_month::date)')
+            con.execute('ALTER TABLE diesel_sales ALTER COLUMN created_at TYPE timestamp USING(created_at::timestamp)')
+            con.execute('ALTER TABLE gas_sales ALTER COLUMN created_at TYPE timestamp USING(created_at::timestamp)')
             con.execute('CREATE INDEX diesel_sales_idx ON diesel_sales (year_month, uf, product);')
             con.execute('CREATE INDEX gas_sales_idx ON diesel_sales (year_month, uf, product);')
             
