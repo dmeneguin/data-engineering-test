@@ -15,4 +15,20 @@ The Apache airflow is up in another container that has the etl_dag.py script. Th
 
 The pgadmin has a postgresql admin instance to make queries on postgresql database.
 
+### ETL Overview
+The ETL DAG has 4 tasks: Extraction, Transform, Verify, Load
+![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/diagram-airflow-tasks.png)
+#### Extraction
+Once LibreOffice loads pivot cache and saves the xls file, the worksheets look like this:
+![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/worksheets.png)
+
+The DPCache_m3 sheet has oil derivative fuels data and DPCache_m3_2 has diesel data. Once these are loaded as pandas dataframes, they are passed as xcom parameters for the transform task.
+#### Transform
+The transform task uses pandas for the transposal of volumes columns (separated in months) into a single column called volume with another column called month, indicating the month that the row refers.
+![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/transform_task.jpg)
+This task also uses the month and year columns to make the year_month column, all NA values of volumes are filled with zeros, a unit column is created and the unit is removed from the name of the product.
+#### Verify
+The verify task calculates the sum of volumes of all months filtered by product, state and year of the transformed dataframe and compares it with the original dataframe
+#### Load
+The load task removes the intermediary columns and renames the relevant ones. It stores the diesel data in the diesel_values table and oil derivative fuels into gas_values table. The types of year_month and created_at are corrected to date and timestamp respectively with sql alter table queries. Finally, a index is created for both tables, considering year_month, uf and product columns.
 
