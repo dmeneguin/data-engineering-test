@@ -11,9 +11,8 @@ from airflow.utils.dates import days_ago
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
-import os
 import urllib.request
-import time;
+import math
 
 # [END import_module]
 
@@ -34,11 +33,26 @@ with DAG(
 ) as dag:
     # [END instantiate_dag]
 
+    def correct_values_misplacement_on_pivot_cache(misplaced_df):
+        entries_number = len(misplaced_df.index)
+        rotation_value = 0
+        for row in range(entries_number):
+            number_of_rotations = 12 - row % 13
+            for j in range(number_of_rotations):
+                for i in range(13):
+                    temp_rotation_value = misplaced_df.iat[row, 4 + i]
+                    misplaced_df.iat[row, 4 + i] = rotation_value
+                    rotation_value = temp_rotation_value
+                    if(i==12):
+                        misplaced_df.iat[row, 4] = rotation_value        
+
     def verify_import_consistency(original_df, imported_df):
         for i, row in original_df.iterrows():
             imported_df_filtered = imported_df[(imported_df["COMBUSTÍVEL"] == row["COMBUSTÍVEL"])  & (imported_df["ANO"] == row["ANO"]) & (imported_df["ESTADO"] == row["ESTADO"])]
             volume_sum = imported_df_filtered['volume'].sum()
-            original_volume_sum = row[4:16].sum()
+            original_volume_sum = row['TOTAL']
+            if(math.isnan(original_volume_sum)):
+                original_volume_sum = 0
             if(round(volume_sum) != round(original_volume_sum)):
                 print('The values of this set are mismatching: {} {} {} {} {}'.format(row["COMBUSTÍVEL"], row["ANO"], row["ESTADO"], volume_sum, original_volume_sum))
 
@@ -96,6 +110,8 @@ with DAG(
         extract_diesel_data_string = ti.xcom_pull(task_ids='extract', key='diesel_data')
         extract_gas_data = pd.DataFrame(json.loads(extract_gas_data_string))
         extract_diesel_data = pd.DataFrame(json.loads(extract_diesel_data_string))
+        correct_values_misplacement_on_pivot_cache(extract_gas_data)
+        correct_values_misplacement_on_pivot_cache(extract_diesel_data)
         transformed_gas_data = pd.DataFrame()
         transformed_gas_data = group_months_into_single_volume_column(extract_gas_data, transformed_gas_data)
         transformed_diesel_data = pd.DataFrame()
@@ -103,12 +119,10 @@ with DAG(
         fill_na_of_volume_with_zeros(transformed_gas_data)
         create_and_fill_year_month_column(transformed_gas_data)
         create_and_fill_unit_column(transformed_gas_data)
-        remove_unit_from_product_name(transformed_gas_data)
         create_and_fill_created_at_column(transformed_gas_data)
         fill_na_of_volume_with_zeros(transformed_diesel_data) 
         create_and_fill_year_month_column(transformed_diesel_data)
         create_and_fill_unit_column(transformed_diesel_data)
-        remove_unit_from_product_name(transformed_diesel_data)
         create_and_fill_created_at_column(transformed_diesel_data)
         ti.xcom_push('transformed_gas_data', transformed_gas_data.to_json())
         ti.xcom_push('transformed_diesel_data', transformed_diesel_data.to_json())
@@ -128,6 +142,8 @@ with DAG(
         transformed_diesel_data = pd.DataFrame(json.loads(transformed_diesel_data_string))
         original_gas_data = pd.DataFrame(json.loads(original_gas_data_string))
         original_diesel_data = pd.DataFrame(json.loads(original_diesel_data_string))
+        original_gas_data.fillna(0)
+        original_diesel_data.fillna(0)
         verify_import_consistency(original_gas_data, transformed_gas_data)
         verify_import_consistency(original_diesel_data, transformed_diesel_data)
 
@@ -140,6 +156,8 @@ with DAG(
         transformed_diesel_data_string = ti.xcom_pull(task_ids='transform', key='transformed_diesel_data')
         transformed_gas_data = pd.DataFrame(json.loads(transformed_gas_data_string))
         transformed_diesel_data = pd.DataFrame(json.loads(transformed_diesel_data_string))
+        remove_unit_from_product_name(transformed_gas_data)
+        remove_unit_from_product_name(transformed_diesel_data)
         transformed_gas_data = extract_relevant_columns_and_rename(transformed_gas_data)
         transformed_diesel_data = extract_relevant_columns_and_rename(transformed_diesel_data)
         engine = create_engine('postgresql://airflow:airflow@postgres:5432/airflow')
