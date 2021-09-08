@@ -54,7 +54,7 @@ Once LibreOffice loads pivot cache and saves the xls file, the worksheets look l
 
 The DPCache_m3 sheet has oil derivative fuels data and DPCache_m3_2 has diesel data. Once these are loaded as pandas dataframes, they are passed as xcom parameters for the transform task.
 #### Transform
-The values of pivot cache imported from libreoffice are desaligned with the columns they should be at. In the image below there is an example, the values in red should all be under the TOTAL column.
+The values of pivot cache imported from libreoffice are misaligned with the columns they should be at. In the image below there is an example, the values in red should all be under the TOTAL column.
 
 ![](https://github.com/dmeneguin/data-engineering-test/blob/master/images/desalignment.png)
 
